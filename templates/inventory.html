@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - IMS Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-boxes"></i>
+                IMS Dashboard
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/inventory" class="nav-link active">Inventory</a></li>
+                <li><a href="/analytics" class="nav-link">Analytics</a></li>
+                <li><a href="/predict" class="nav-link">Predictions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h1 class="card-title">
+                    <i class="fas fa-boxes text-primary"></i>
+                    Inventory Management
+                </h1>
+                <p class="card-subtitle">
+                    Monitor stock levels, track expiry dates, and manage inventory efficiently
+                </p>
+            </div>
+        </div>
+
+        <!-- Inventory Overview Stats -->
+        {% if metrics %}
+        <div class="grid grid-4 mb-6">
+            <div class="stats-card">
+                <div class="stats-number">{{ metrics.total_products }}</div>
+                <div class="stats-label">Total Products</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">{{ metrics.low_stock_count }}</div>
+                <div class="stats-label">Low Stock Items</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">{{ "%.0f"|format(metrics.average_stock_level) }}</div>
+                <div class="stats-label">Avg Stock Level</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">${{ "%.0f"|format(metrics.total_stock_value) }}</div>
+                <div class="stats-label">Total Stock Value</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Inventory Sections -->
+        <div class="grid grid-2 mb-6">
+            <!-- Low Stock Products -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Low Stock Products
+                    </h2>
+                    <p class="card-subtitle">
+                        Products that need restocking (below 300 units)
+                    </p>
+                </div>
+                
+                {% if restock_recommendations %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Current Stock</th>
+                                <th>Min Level</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in restock_recommendations %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-info">{{ product.product_id }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ product.product_name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="text-danger font-weight-bold">{{ product.quantity_stock }}</span>
+                                </td>
+                                <td>{{ product.minimum_stock_level }}</td>
+                                <td>
+                                    <span class="badge badge-danger">Critical</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-6">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3 class="text-success">All Good!</h3>
+                    <p class="text-muted">No products are currently low on stock.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Near Expiry Products -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-clock text-danger"></i>
+                        Near Expiry Products
+                    </h2>
+                    <p class="card-subtitle">
+                        Products expiring within 7 days
+                    </p>
+                </div>
+                
+                {% if near_expiry_recommendations %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Expiry Date</th>
+                                <th>Days Left</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in near_expiry_recommendations %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-info">{{ product.product_id }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ product.product_name }}</strong>
+                                </td>
+                                <td>{{ product.expiry_date.strftime('%d/%m/%Y') if product.expiry_date else 'N/A' }}</td>
+                                <td>
+                                    {% if product.days_until_expiry <= 0 %}
+                                        <span class="badge badge-danger">Expired</span>
+                                    {% elif product.days_until_expiry <= 3 %}
+                                        <span class="badge badge-danger">{{ product.days_until_expiry }} days</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">{{ product.days_until_expiry }} days</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ product.quantity_stock }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-6">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3 class="text-success">No Expiry Issues!</h3>
+                    <p class="text-muted">No products are expiring soon.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">Upload New Data</h3>
+                    <p class="card-subtitle">Update your inventory with the latest data</p>
+                </div>
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-upload"></i>
+                    Upload CSV
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
+                    <h3 class="card-title">View Analytics</h3>
+                    <p class="card-subtitle">Analyze sales trends and performance</p>
+                </div>
+                <a href="/analytics" class="btn btn-success">
+                    <i class="fas fa-chart-line"></i>
+                    View Analytics
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-brain fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">Make Predictions</h3>
+                    <p class="card-subtitle">Use AI to predict future sales</p>
+                </div>
+                <a href="/predict" class="btn btn-warning">
+                    <i class="fas fa-calculator"></i>
+                    Predictions
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

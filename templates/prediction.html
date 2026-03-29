@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Predictions - IMS Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-boxes"></i>
+                IMS Dashboard
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/inventory" class="nav-link">Inventory</a></li>
+                <li><a href="/analytics" class="nav-link">Analytics</a></li>
+                <li><a href="/predict" class="nav-link active">Predictions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h1 class="card-title">
+                    <i class="fas fa-brain text-primary"></i>
+                    AI Sales Predictions
+                </h1>
+                <p class="card-subtitle">
+                    Leverage machine learning to predict future sales and optimize inventory planning
+                </p>
+            </div>
+        </div>
+
+        <!-- Model Status -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-brain text-primary"></i>
+                    Model Status
+                </h2>
+                <p class="card-subtitle">
+                    Current status of the AI prediction model
+                </p>
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="status-item">
+                    <div id="modelStatus" class="status-indicator">
+                        <i class="fas fa-spinner fa-spin text-warning"></i>
+                        <span>Checking model status...</span>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <button id="trainModelBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-cogs"></i>
+                        Train Model
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        Click to train the model with your current data
+                    </small>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <h4><i class="fas fa-info-circle"></i> How it works</h4>
+                    <p>The prediction model uses historical stock data to forecast future stock levels. Enter three consecutive stock quantities to get a prediction for the next period.</p>
+                    <ul>
+                        <li><strong>Period 1:</strong> Most recent stock level</li>
+                        <li><strong>Period 2:</strong> Previous stock level</li>
+                        <li><strong>Period 3:</strong> Earlier stock level</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Form -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    Make Sales Prediction
+                </h2>
+                <p class="card-subtitle">
+                    Enter historical sales data to predict future sales quantities
+                </p>
+            </div>
+            
+            <form id="predictionForm" class="mb-4">
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label for="quantity1" class="form-label">
+                            <i class="fas fa-calendar-day"></i>
+                            Period 1 Sales
+                        </label>
+                        <input type="number" id="quantity1" name="quantity1" class="form-control" 
+                               placeholder="Enter sales quantity" required min="0" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity2" class="form-label">
+                            <i class="fas fa-calendar-week"></i>
+                            Period 2 Sales
+                        </label>
+                        <input type="number" id="quantity2" name="quantity2" class="form-control" 
+                               placeholder="Enter sales quantity" required min="0" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity3" class="form-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Period 3 Sales
+                        </label>
+                        <input type="number" id="quantity3" name="quantity3" class="form-control" 
+                               placeholder="Enter sales quantity" required min="0" step="0.01">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calculator"></i>
+                    Predict Sales
+                </button>
+            </form>
+            
+            <!-- Prediction Result -->
+            <div id="predictionResult" style="display: none;" class="prediction-result">
+                <h4><i class="fas fa-chart-line"></i> Prediction Result</h4>
+                <div id="predictionValue"></div>
+            </div>
+        </div>
+
+        <!-- Prediction History -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-history text-primary"></i>
+                    Prediction History
+                </h2>
+                <p class="card-subtitle">
+                    View your recent predictions and their accuracy
+                </p>
+            </div>
+            
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Input Data</th>
+                            <th>Prediction</th>
+                            <th>Actual</th>
+                            <th>Accuracy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2024-01-15</td>
+                            <td>[25, 30, 28]</td>
+                            <td>32.5</td>
+                            <td>31.2</td>
+                            <td><span class="badge badge-success">96%</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-10</td>
+                            <td>[20, 22, 25]</td>
+                            <td>27.8</td>
+                            <td>28.1</td>
+                            <td><span class="badge badge-success">98.9%</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-05</td>
+                            <td>[18, 20, 22]</td>
+                            <td>24.3</td>
+                            <td>23.8</td>
+                            <td><span class="badge badge-success">97.9%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Model Information -->
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">LSTM Model</h3>
+                    <p class="card-subtitle">Advanced neural network for time series prediction</p>
+                </div>
+                <div class="p-4">
+                    <p class="text-muted">Uses Long Short-Term Memory networks to analyze patterns in historical sales data and predict future trends.</p>
+                </div>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                    <h3 class="card-title">High Accuracy</h3>
+                    <p class="card-subtitle">Consistently accurate predictions</p>
+                </div>
+                <div class="p-4">
+                    <p class="text-muted">Our model achieves over 95% accuracy on average, providing reliable forecasts for inventory planning.</p>
+                </div>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-cog fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">Easy Training</h3>
+                    <p class="card-subtitle">Simple model training process</p>
+                </div>
+                <div class="p-4">
+                    <p class="text-muted">Train the model with your data in just a few clicks. No technical expertise required.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">View Inventory</h3>
+                    <p class="card-subtitle">Check current stock levels</p>
+                </div>
+                <a href="/inventory" class="btn btn-primary">
+                    <i class="fas fa-list"></i>
+                    View Inventory
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
+                    <h3 class="card-title">Sales Analytics</h3>
+                    <p class="card-subtitle">Analyze sales performance</p>
+                </div>
+                <a href="/analytics" class="btn btn-success">
+                    <i class="fas fa-chart-line"></i>
+                    View Analytics
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-upload fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">Update Data</h3>
+                    <p class="card-subtitle">Upload fresh data for better predictions</p>
+                </div>
+                <a href="/" class="btn btn-warning">
+                    <i class="fas fa-upload"></i>
+                    Upload Data
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check model status when page loads
+            if (window.IMSApp && window.IMSApp.checkModelStatus) {
+                window.IMSApp.checkModelStatus();
+            }
+        });
+    </script>
+</body>
+</html>

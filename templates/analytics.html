@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics - IMS Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-boxes"></i>
+                IMS Dashboard
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/inventory" class="nav-link">Inventory</a></li>
+                <li><a href="/analytics" class="nav-link active">Analytics</a></li>
+                <li><a href="/predict" class="nav-link">Predictions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h1 class="card-title">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    Sales Analytics
+                </h1>
+                <p class="card-subtitle">
+                    Comprehensive insights into your sales performance and inventory trends
+                </p>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4 mb-6">
+            <div class="stats-card">
+                <div class="stats-number">${{ "%.0f"|format(total_sales) }}</div>
+                <div class="stats-label">Total Sales</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">${{ "%.0f"|format(average_order_value) }}</div>
+                <div class="stats-label">Avg Order Value</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">{{ top_selling_products|length }}</div>
+                <div class="stats-label">Top Products</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">{{ bottom_selling_products|length }}</div>
+                <div class="stats-label">Low Performers</div>
+            </div>
+        </div>
+
+        <!-- Sales Trend Chart -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-chart-area text-primary"></i>
+                    Sales Trend Analysis
+                </h2>
+                <p class="card-subtitle">
+                    Visual representation of sales performance over time
+                </p>
+            </div>
+            <div style="height: 400px; position: relative;">
+                <canvas id="salesTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Product Performance -->
+        <div class="grid grid-2 mb-6">
+            <!-- Top Selling Products -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-trophy text-success"></i>
+                        Top 5 Stock Levels
+                    </h2>
+                    <p class="card-subtitle">
+                        Products with the highest stock quantities
+                    </p>
+                </div>
+                
+                {% if top_selling_products %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product Name</th>
+                                <th>Stock Level</th>
+                                <th>Revenue</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in top_selling_products %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-success">#{{ loop.index }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ product.product_name }}</strong>
+                                </td>
+                                <td>{{ product.quantity_stock }}</td>
+                                <td>${{ "%.0f"|format(product.total_revenue) }}</td>
+                                <td>
+                                    <span class="badge badge-success">High Stock</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-6">
+                    <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                    <h3 class="text-info">No Data Available</h3>
+                    <p class="text-muted">Upload your inventory data to see top selling products.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bottom Selling Products -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Bottom 5 Stock Levels
+                    </h2>
+                    <p class="card-subtitle">
+                        Products with the lowest stock quantities
+                    </p>
+                </div>
+                
+                {% if bottom_selling_products %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product Name</th>
+                                <th>Stock Level</th>
+                                <th>Revenue</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in bottom_selling_products %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-warning">#{{ loop.index }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ product.product_name }}</strong>
+                                </td>
+                                <td>{{ product.quantity_stock }}</td>
+                                <td>${{ "%.0f"|format(product.total_revenue) }}</td>
+                                <td>
+                                    <span class="badge badge-warning">Low Stock</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-6">
+                    <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                    <h3 class="text-info">No Data Available</h3>
+                    <p class="text-muted">Upload your inventory data to see bottom selling products.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Performance Insights -->
+        <div class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-lightbulb text-primary"></i>
+                    Performance Insights
+                </h2>
+                <p class="card-subtitle">
+                    Key insights and recommendations based on your data
+                </p>
+            </div>
+            
+            <div class="grid grid-3">
+                <div class="text-center p-4">
+                    <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                    <h4 class="text-success">Sales Performance</h4>
+                    <p class="text-muted">Your total sales of ${{ "%.0f"|format(total_sales) }} shows strong performance.</p>
+                </div>
+                
+                <div class="text-center p-4">
+                    <i class="fas fa-dollar-sign fa-2x text-primary mb-3"></i>
+                    <h4 class="text-primary">Average Order Value</h4>
+                    <p class="text-muted">Average order value of ${{ "%.0f"|format(average_order_value) }} indicates good pricing strategy.</p>
+                </div>
+                
+                <div class="text-center p-4">
+                    <i class="fas fa-target fa-2x text-warning mb-3"></i>
+                    <h4 class="text-warning">Optimization Opportunities</h4>
+                    <p class="text-muted">Focus on improving sales for low-performing products.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">View Inventory</h3>
+                    <p class="card-subtitle">Check current stock levels and status</p>
+                </div>
+                <a href="/inventory" class="btn btn-primary">
+                    <i class="fas fa-list"></i>
+                    View Inventory
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-brain fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">Make Predictions</h3>
+                    <p class="card-subtitle">Use AI to predict future sales trends</p>
+                </div>
+                <a href="/predict" class="btn btn-warning">
+                    <i class="fas fa-calculator"></i>
+                    Predictions
+                </a>
+            </div>
+            
+            <div class="card text-center">
+                <div class="card-header">
+                    <i class="fas fa-upload fa-3x text-success mb-3"></i>
+                    <h3 class="card-title">Update Data</h3>
+                    <p class="card-subtitle">Upload fresh data for better insights</p>
+                </div>
+                <a href="/" class="btn btn-success">
+                    <i class="fas fa-upload"></i>
+                    Upload Data
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Initialize sales trend chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('salesTrendChart').getContext('2d');
+            
+            // Sample data - replace with actual data from backend
+            const chartData = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Sales Revenue',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 32000, 35000, 40000, 38000, 45000],
+                    borderColor: 'rgb(49, 130, 206)',
+                    backgroundColor: 'rgba(49, 130, 206, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
