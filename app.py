@@ -1,4 +1,3 @@
-# 🔥 Prevent matplotlib crash
 import matplotlib
 matplotlib.use('Agg')
 
